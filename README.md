@@ -26,7 +26,7 @@ Proyecto_Sushi_ML/
 ├── app.py                      # Interfaz con gráficos y parámetros en Streamlit
 ├── backend.py                  # Lectura, limpieza, variables, predicción y fórmulas
 ├── train_models.py             # Entrenamiento y comparación de los 9 regresores (dos objetivos)
-├── Analisis_Sushi_ML.ipynb     # Notebook paso a paso, en primera persona y con gráficos
+├── Analisis_Sushi_ML.ipynb     # Notebook paso a paso.
 ├── requirements.txt            # Librerías que necesito instalar
 ├── README.md                   # Esta guía
 ├── data/
@@ -41,7 +41,6 @@ Proyecto_Sushi_ML/
 └── graficos/                  # Gráficos de referencia generados al preparar el proyecto
 ```
 
-El ZIP original contenía además `sushi_order_items.csv`, `sushi_customers.csv`, `sushi_reviews.csv` y `sushi_staff.csv`. No los necesito para los tres objetivos elegidos. No incluyo el CSV casi millonario de productos para evitar peso y complejidad que no aportan valor al modelo diario.
 
 ## 3. Pasos para descargarlo y ejecutarlo en Windows
 
@@ -105,10 +104,10 @@ En la barra lateral puedo ajustar el **ticket medio**, los **costes variables**,
 ## 7. Límites que debo explicar en la entrega
 
 - **Datos históricos:** comienzan el 01/01/2015 y terminan el 31/12/2024. La previsión de la aplicación empieza el 01/01/2025, un día después de la última fecha disponible, y permite 1–30 días. No es una previsión actual fiable de 2026.
-- **Negocio diferente:** los datos describen un caso de sushi, no un restaurante africano real. Lo que aprende el modelo no debe transferirse automáticamente a ese negocio.
+- **Negocio diferente:** los datos describen un caso de sushi, pero lo podríamos utilizar en un restaurante africano real. Lo que aprende, si es cierto, que el modelo no debe transferirse automáticamente a ese negocio.
 - **Moneda:** el CSV no declara explícitamente una divisa. En la app uso el símbolo **€ como supuesto visual** para el ejercicio, **sin conversión de moneda**. Para estimar costes reales de un restaurante español tengo que sustituir el ticket y los costes por importes propios en euros, y no tomar la predicción ML monetaria como euros comprobados.
 - **Ventas frente a cobros:** uso `revenue` porque coincide exactamente con `gross_revenue` del CSV de rentabilidad. **No uso `total_collected`** para no confundir ingresos de ventas con propinas y otros conceptos.
-- **Sin horas:** `sushi_orders.csv` tiene fecha pero **no hora del pedido**. Por ese motivo no genero un modelo horario. Inventar horas o reutilizar horas de pizzería sería incorrecto.
+- **Sin horas:** `sushi_orders.csv` tiene fecha pero **no hora del pedido**. Por ese motivo no genero un modelo horario.
 - **Escenario operativo:** el resultado de rentabilidad no incluye IVA, impuestos sobre beneficios, inversión inicial, amortizaciones ni financiación; tampoco modela un calendario de cierres. Los días de apertura solo se usan para repartir costes mensuales.
 - **Precisión:** debo considerar el MAE, RMSE, R² y la distancia temporal respecto de 2024 antes de interpretar predicciones. Los modelos no garantizan ventas ni beneficios.
 
