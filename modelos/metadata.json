@@ -1,0 +1,11 @@
+{
+  "primer_dia": "2015-01-01",
+  "ultimo_dia": "2024-12-31",
+  "inicio_test": "2023-01-02",
+  "filas_historico": 3653,
+  "filas_train": 2916,
+  "filas_test": 730,
+  "mejor_demanda": "HistGradientBoosting",
+  "mejor_facturacion": "KNN",
+  "ticket_entrenamiento": 105.5647389001009
+}
