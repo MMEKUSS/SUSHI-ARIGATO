@@ -90,7 +90,12 @@ def main():
     rf = entrenar_objetivo(train, test, COLUMNAS_FACTURACION, "facturacion_diaria", "facturacion")
     print("\nDemanda:\n", rd.round(2).to_string(index=False))
     print("\nFacturación:\n", rf.round(2).to_string(index=False))
-    # Comparo la fórmula de mi antiguo proyecto con los importes reales de prueba.
+
+    #En este código estoy haciendo una predicción de la facturación diaria del restaurante a partir de los pedidos previstos por Machine Learning.
+    #Lo importante es que no estoy entrenando otro modelo de Machine Learning para predecir la facturación. 
+    #Estoy utilizando las predicciones de demanda del mejor modelo y multiplicándolas por el ticket medio.
+    #Lo hago así porque quiero calcular cuánto dinero podría facturar el restaurante a partir del número de pedidos que predice el modelo de Machine Learning.
+
     ticket_train = train["facturacion_diaria"].sum() / train["pedidos_diarios"].sum()
     pred_demanda_best = pd.read_csv(MODELOS / "predicciones_test_demanda.csv")
     best = rd.iloc[0]["Modelo"]
