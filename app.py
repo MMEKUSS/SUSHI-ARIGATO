@@ -10,6 +10,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import streamlit as st
+import xgboost as xgb
+
+from xgboost import XGBRegressor
 
 from backend import (MODELOS, cargar_datos, resumen_diario, medias_historicas,
                      cargar_modelo, predecir_futuro, calcular_rentabilidad,
@@ -64,12 +67,18 @@ comparacion_f = pd.read_csv(MODELOS / "comparacion_facturacion.csv")
 
 st.title("🍣 Mi restaurante | Predicciones con Machine Learning")
 st.caption("Caso de estudio: restaurante de sushi (datos históricos 2015–2024). No corresponde al restaurante africano que quiero abrir.")
-st.warning("El histórico termina el 31/12/2024. Las previsiones arrancan el 01/01/2025 y son ejercicios retrospectivos, no pronósticos fiables para 2026. Los resultados no sustituyen los datos reales de mi futuro restaurante.")
+st.warning("El histórico termina el 31/12/2024. Las previsiones arrancan el 01/01/2025")
 
 st.sidebar.header("Configuración de la previsión")
 modelo_d = st.sidebar.selectbox("Modelo de demanda", comparacion_d["Modelo"].tolist(), index=0)
 modelo_f = st.sidebar.selectbox("Modelo de facturación", comparacion_f["Modelo"].tolist(), index=0)
 dias = st.sidebar.slider("Días consecutivos previstos", min_value=1, max_value=30, value=14)
+
+st.info(
+    "Las predicciones de varios días utilizan resultados "
+    "estimados de días anteriores. Por tanto, la incertidumbre "
+    "puede aumentar cuanto más lejano sea el día previsto."
+)
 
 st.sidebar.divider()
 st.sidebar.header("Escenario económico (editable)")
@@ -84,7 +93,6 @@ fijos_mensuales = st.sidebar.number_input("Otros costes fijos al mes (€)", min
                                value=round(referencias["costes_fijos_diarios"] * 30, 2), step=50.0)
 modo_facturacion = st.sidebar.radio("Facturación que se utiliza para el beneficio",
                                     ["Pedidos × ticket medio", "Predicción directa ML"], index=0)
-st.sidebar.caption("Valores iniciales basados en los últimos 365 días de 2024; puedes sustituirlos por los de tu negocio. El ajuste de días abiertos reparte costes, pero no elimina fechas de las previsiones.")
 
 try:
     forecast = predecir_futuro(diario, modelo("demanda", modelo_d), modelo("facturacion", modelo_f), dias)
@@ -168,7 +176,7 @@ with tab3:
 
 with tab4:
     st.subheader("Rentabilidad: facturación menos costes")
-    st.latex(r"\text{Beneficio operativo} = \text{Facturación} - \text{Ingredientes} - \text{Personal} - \text{Costes fijos}")
+    st.latex(r"\text{Beneficio operativo} = \text{Facturación} - \text{Coste variables} - \text{Personal} - \text{Costes fijos}")
     total_ventas = escenario["facturacion_prevista"].sum()
     total_beneficio = escenario["beneficio_operativo"].sum()
     r1, r2, r3, r4 = st.columns(4)

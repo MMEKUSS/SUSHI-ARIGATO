@@ -37,7 +37,7 @@ CLAVES_MODELOS = {
 
 
 def crear_modelos():
-    """Devuelvo modelos sin entrenar; los configuro como en el notebook original."""
+    """Devuelvo modelos sin entrenar."""
     return {
         "Linear Regression": LinearRegression(),
         "Ridge": Ridge(alpha=1.0),

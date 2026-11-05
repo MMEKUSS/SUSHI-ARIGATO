@@ -86,7 +86,7 @@ def separar_temporal(df, porcentaje_entrenamiento=0.8):
 
 
 def medias_historicas(pedidos, costes, dias=365):
-    """Cifras observadas del período más reciente del dataset, no del restaurante del usuario."""
+    """Cifras observadas del período más reciente del dataset."""
     ultima_fecha = costes["date"].max()
     desde = ultima_fecha - pd.Timedelta(days=dias - 1)
     p = pedidos[pedidos["date"] >= desde]
