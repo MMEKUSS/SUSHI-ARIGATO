@@ -13,7 +13,7 @@ CARPETA = Path(__file__).resolve().parent
 DATOS = CARPETA / "data"
 MODELOS = CARPETA / "modelos"
 
-# Variables que utilizo para predecir pedidos diarios, como en mi notebook original.
+# Variables que utilizo para predecir pedidos diarios.
 COLUMNAS_DEMANDA = [
     "dia_semana", "mes", "fin_semana",
     "pedidos_ayer", "pedidos_hace_7_dias", "media_7_dias",
@@ -113,7 +113,7 @@ def cargar_modelo(tipo, nombre):
     return joblib.load(ruta_modelo(tipo, nombre))
 
 
-def predecir_futuro(diario, modelo_demanda, modelo_facturacion, dias=14):
+def predecir_futuro(diario, modelo_demanda, modelo_facturacion, dias=29):
     """Preveo los siguientes 1-30 días en orden cronológico.
 
     IMPORTANTE: a partir del segundo día uso MIS PROPIAS predicciones previas
