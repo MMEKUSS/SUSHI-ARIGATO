@@ -1,12 +1,14 @@
 """Sushi Analytics — interfaz Restaurant Management para Streamlit.
 
-Solo cambia la presentación y la navegación. Los modelos se siguen cargando
-sin entrenar y todas las predicciones usan las funciones de backend.py.
+La previsión anual se entrena con modelos estacionales, mientras que la de
+corto plazo conserva los modelos originales guardados.
 
-Ejecutar: python -m streamlit run app.py
+Ejecutar: python -m streamlit run funciones.py
 """
 
 from pathlib import Path
+import json
+import joblib
 
 import altair as alt
 import pandas as pd
@@ -22,6 +24,8 @@ from backend import (
     cargar_modelo,
     medias_historicas,
     predecir_futuro,
+    entrenar_modelos_calendario_largo,
+    predecir_anio_completo,
     punto_equilibrio,
     resumen_diario,
 )
@@ -134,8 +138,23 @@ def datos():
 
 
 @st.cache_resource(show_spinner="Cargando modelo...")
-def modelo(tipo, nombre):
-    return cargar_modelo(tipo, nombre)
+def modelo(tipo, nombre, enfoque="original", version=0):
+    """Los modelos originales nunca se sustituyen por los del experimento."""
+    if enfoque == "original":
+        return cargar_modelo(tipo, nombre)
+    directorio = MODELOS / "enfoques"
+    manifiesto = json.loads((directorio / "manifest.json").read_text(encoding="utf-8"))
+    for entrada in manifiesto["enfoques"][enfoque][tipo]:
+        if entrada["modelo"] == nombre:
+            return joblib.load(directorio / entrada["archivo"])
+    raise ValueError(f"No hay modelo para {tipo}, {enfoque} y {nombre}.")
+
+
+@st.cache_resource(show_spinner="Entrenando y validando modelos estacionales...")
+def modelos_largo_plazo():
+    # Una sola vez por sesión de caché, no cada vez que cambian los costes.
+    _, _, diario, _ = datos()
+    return entrenar_modelos_calendario_largo(diario)
 
 
 def euro(valor):
@@ -154,7 +173,7 @@ def hero(titulo, descripcion, etiqueta="CASO DE ESTUDIO · RESTAURANTE DE SUSHI"
     st.markdown(
         f"""<div class="hero"><div class="eyebrow">{etiqueta}</div>
         <h1>{titulo}</h1><p>{descripcion}</p>
-        <span class="hero-badge">Datos 2015–2024 · Previsión desde 01/01/2025</span></div>""",
+        <span class="hero-badge">Datos 2015–2024 · {f'Proyección {anio_prediccion}' if es_anual else 'Pronóstico de 1 a 30 días desde 2025'}</span></div>""",
         unsafe_allow_html=True,
     )
 
@@ -259,11 +278,66 @@ st.sidebar.markdown("**MENÚ PRINCIPAL**")
 pagina = st.sidebar.radio("Selecciona la sección", PAGINAS, label_visibility="collapsed")
 st.sidebar.divider()
 st.sidebar.markdown("**CONFIGURACIÓN DE PREVISIONES**")
-dias = st.sidebar.slider("Días que quieres predecir", 1, 30, 14)
+modo_plazo = st.sidebar.radio(
+    "Horizonte de predicción",
+    ["Año completo", "Corto plazo (1–30 días)"],
+    horizontal=False,
+)
+es_anual = modo_plazo == "Año completo"
+if es_anual:
+    anio_prediccion = st.sidebar.selectbox(
+        "Año que quieres predecir", list(range(2025, 2036)), index=2
+    )
+    dias = len(pd.date_range(f"{anio_prediccion}-01-01", f"{anio_prediccion}-12-31"))
+    st.sidebar.caption("Modelos estacionales: usan calendario y datos observados de 2015–2024.")
+else:
+    dias = st.sidebar.slider("Días que quieres predecir", 1, 30, 14)
+    anio_prediccion = None
 
-with st.sidebar.expander("Modelos de Machine Learning", expanded=False):
-    modelo_d = st.selectbox("Modelo de demanda", comparacion_d["Modelo"].tolist())
-    modelo_f = st.selectbox("Modelo de facturación", comparacion_f["Modelo"].tolist())
+# Antes de ejecutar comparar_enfoques.py se mantiene el proyecto TAL CUAL.
+# Al ejecutar el script aparecen tres enfoques experimentales adicionales.
+carpeta_enfoques = MODELOS / "enfoques"
+ruta_manifiesto = carpeta_enfoques / "manifest.json"
+manifest_experimento = None
+if ruta_manifiesto.exists():
+    try:
+        manifest_experimento = json.loads(ruta_manifiesto.read_text(encoding="utf-8"))
+    except (ValueError, KeyError, OSError):
+        st.sidebar.warning("El manifiesto de la comparación no se puede leer.")
+
+opciones_enfoque = {"Original (sin cambios)": "original"}
+if manifest_experimento:
+    for clave, etiqueta in [
+        ("actual", "A · Reciente (reentrenado)"),
+        ("anual", "B · Mismo día del año anterior"),
+        ("combinado", "C · Reciente + anual"),
+    ]:
+        conjuntos = manifest_experimento.get("enfoques", {}).get(clave, {})
+        if conjuntos.get("demanda") and conjuntos.get("facturacion"):
+            opciones_enfoque[etiqueta] = clave
+
+if es_anual:
+    etiqueta_enfoque = "D · Estacionalidad (validación en 2024)"
+    enfoque_elegido = "calendario_largo"
+    modelo_d = "Selección automática por MAE (2024)"
+    modelo_f = "Selección automática por MAE (2024)"
+else:
+    etiqueta_enfoque = st.sidebar.selectbox(
+        "Cómo quieres predecir", list(opciones_enfoque), index=0
+    )
+    enfoque_elegido = opciones_enfoque[etiqueta_enfoque]
+    if enfoque_elegido == "original":
+        opciones_d = comparacion_d["Modelo"].tolist()
+        opciones_f = comparacion_f["Modelo"].tolist()
+    else:
+        conjuntos = manifest_experimento["enfoques"][enfoque_elegido]
+        opciones_d = [item["modelo"] for item in conjuntos["demanda"]]
+        opciones_f = [item["modelo"] for item in conjuntos["facturacion"]]
+    with st.sidebar.expander("Modelos de Machine Learning", expanded=False):
+        modelo_d = st.selectbox("Modelo de demanda", opciones_d)
+        modelo_f = st.selectbox("Modelo de facturación", opciones_f)
+    if not manifest_experimento:
+        st.sidebar.caption("Para activar la comparación anual: python comparar_enfoques.py")
 
 with st.sidebar.expander("Editar escenario económico", expanded=False):
     ticket = st.number_input("Ticket medio (€ / pedido)", min_value=0.0,
@@ -284,12 +358,26 @@ with st.sidebar.expander("Editar escenario económico", expanded=False):
 st.sidebar.caption("Caso educativo · No son previsiones de un restaurante nuevo.")
 
 try:
-    forecast = predecir_futuro(
-        diario, modelo("demanda", modelo_d), modelo("facturacion", modelo_f), dias,
-    )
+    # La versión invalida la caché si vuelves a generar el manifiesto.
+    version_modelos = ruta_manifiesto.stat().st_mtime_ns if ruta_manifiesto.exists() else 0
+    if es_anual:
+        modelos_anuales, metricas_anuales = modelos_largo_plazo()
+        forecast = predecir_anio_completo(diario, anio_prediccion, modelos_anuales)
+        modelo_d = str(metricas_anuales[metricas_anuales["Objetivo"] == "demanda"].iloc[0]["Modelo"])
+        modelo_f = str(metricas_anuales[metricas_anuales["Objetivo"] == "facturacion"].iloc[0]["Modelo"])
+    else:
+        metricas_anuales = None
+        forecast = predecir_futuro(
+            diario,
+            modelo("demanda", modelo_d, enfoque_elegido, version_modelos),
+            modelo("facturacion", modelo_f, enfoque_elegido, version_modelos),
+            dias,
+            enfoque="actual" if enfoque_elegido == "original" else enfoque_elegido,
+        )
     escenario = calcular_rentabilidad(
         forecast, ticket, cogs_pct, personal_mensual, fijos_mensuales,
         dias_apertura, usar_facturacion_ml=(modo_facturacion == "Predicción directa ML"),
+        repartir_coste_mensual=es_anual,
     )
 except Exception as error:
     st.error("No se ha podido calcular la previsión. Revisa los modelos y parámetros.")
@@ -314,7 +402,7 @@ if pagina == PAGINAS[0]:
     )
     aviso(
         f"<b>Horizonte seleccionado:</b> {fecha_inicio} – {fecha_fin} ({dias} días). "
-        "Es un escenario calculado a partir del histórico de sushi; no son resultados reales de 2025."
+        "Es una proyección del modelo, no una facturación real ni una garantía de resultados."
     )
 
     seccion("Resumen del escenario", "Métricas del período que acabas de seleccionar.")
@@ -324,16 +412,35 @@ if pagina == PAGINAS[0]:
     k3.metric("Beneficio operativo", euro(total_beneficio))
     k4.metric("Margen operativo", porcentaje(margen))
 
+    if es_anual:
+        seccion(f"Resumen mensual de {anio_prediccion}")
+        mensual = (escenario.assign(Mes=escenario["date"].dt.strftime("%Y-%m"))
+                   .groupby("Mes", as_index=False).agg(
+                       Pedidos=("pedidos_previstos", "sum"),
+                       Facturacion=("facturacion_prevista", "sum"),
+                       Costes_personal=("costes_personal", "sum"),
+                       Beneficio=("beneficio_operativo", "sum")))
+        st.dataframe(mensual.round(2), hide_index=True, use_container_width=True)
+        tabla_csv(mensual, f"prevision_mensual_{anio_prediccion}.csv")
+
     a, b = st.columns([1.6, 1])
     with a:
-        seccion("Evolución de pedidos", "Pronóstico diario y comportamiento de los últimos 21 días reales.")
-        previo = diario.tail(21)[["date", "pedidos_diarios"]].rename(
-            columns={"pedidos_diarios": "Histórico"})
-        futuro = escenario[["date", "pedidos_previstos"]].rename(
-            columns={"pedidos_previstos": "Predicción"})
-        combinado = pd.concat([previo, futuro], ignore_index=True)
-        linea(combinado, "date", ["Histórico", "Predicción"],
-              titulo_y="Pedidos / día", puntos=True)
+        if es_anual:
+            seccion("Pedidos previstos por mes", f"Proyección estacional de {anio_prediccion}.")
+            mensual = (escenario.assign(date=escenario["date"].dt.to_period("M").dt.to_timestamp())
+                      .groupby("date", as_index=False)["pedidos_previstos"].sum())
+            linea(mensual, "date", ["pedidos_previstos"],
+                  nombres={"pedidos_previstos": "Pedidos previstos"},
+                  titulo_y="Pedidos / mes", puntos=True)
+        else:
+            seccion("Evolución de pedidos", "Pronóstico diario y últimos 21 días reales.")
+            previo = diario.tail(21)[["date", "pedidos_diarios"]].rename(
+                columns={"pedidos_diarios": "Histórico"})
+            futuro = escenario[["date", "pedidos_previstos"]].rename(
+                columns={"pedidos_previstos": "Predicción"})
+            combinado = pd.concat([previo, futuro], ignore_index=True)
+            linea(combinado, "date", ["Histórico", "Predicción"],
+                  titulo_y="Pedidos / día", puntos=True)
     with b:
         seccion("Ingresos y costes", "Distribución del importe acumulado previsto.")
         composicion = pd.DataFrame({
@@ -432,27 +539,43 @@ elif pagina == PAGINAS[2]:
         "Consulta los pedidos previstos día a día y analiza cómo evoluciona la demanda futura.",
         etiqueta="INTELIGENCIA PREDICTIVA · DEMANDA",
     )
-    aviso("La previsión parte del día siguiente al último dato real. A partir del segundo día, "
-          "el modelo utiliza también sus propias predicciones anteriores.")
+    if es_anual:
+        aviso(f"Proyección del año {anio_prediccion} con modelos ML entrenados sobre calendario. "
+              "Se validaron con el último año real (2024); no asumen conocer ventas de 2025 o 2026. "
+              "La incertidumbre crece cuanto más lejano es el año de predicción.")
+    elif enfoque_elegido == "anual":
+        aviso("Se consulta cada fecha del mismo día del año anterior. "
+              "Este enfoque no utiliza predicciones recursivas de días anteriores.")
+    else:
+        aviso("La previsión parte del día siguiente al último dato real. A partir del segundo día, "
+              "el modelo utiliza también sus propias predicciones anteriores.")
     k1, k2, k3 = st.columns(3)
     k1.metric("Pedidos previstos", entero(total_pedidos))
     k2.metric("Media de pedidos al día", f"{escenario['pedidos_previstos'].mean():.1f}")
     k3.metric("Días previstos", dias)
-    st.caption(f"Modelo seleccionado: {modelo_d} · Periodo: {fecha_inicio}–{fecha_fin}")
+    st.caption(f"Enfoque: {etiqueta_enfoque} · Modelo: {modelo_d} · Periodo: {fecha_inicio}–{fecha_fin}")
 
     seccion("Evolución de la demanda prevista")
-    linea(escenario, "date", ["pedidos_previstos"],
+    datos_grafico_demanda = (escenario.assign(
+        date=escenario["date"].dt.to_period("M").dt.to_timestamp()
+    ).groupby("date", as_index=False)["pedidos_previstos"].sum() if es_anual else escenario)
+    linea(datos_grafico_demanda, "date", ["pedidos_previstos"],
           nombres={"pedidos_previstos": "Pedidos previstos"},
           titulo_y="Pedidos / día", puntos=True)
     seccion("Detalle por fecha", "Selecciona un día y descarga los resultados si lo necesitas.")
     dias_disponibles = escenario["date"].dt.strftime("%d/%m/%Y").tolist()
-    fecha_elegida = st.select_slider("Inspeccionar día previsto", options=dias_disponibles)
+    fecha_elegida = st.selectbox("Inspeccionar día previsto", options=dias_disponibles)
     fila = escenario.loc[escenario["date"].dt.strftime("%d/%m/%Y") == fecha_elegida].iloc[0]
     st.metric(f"Pedidos previstos para {fecha_elegida}", entero(fila["pedidos_previstos"]))
     st.dataframe(escenario[["date", "pedidos_previstos"]].round(1),
                  use_container_width=True, hide_index=True)
     tabla_csv(escenario[["date", "pedidos_previstos"]], "prevision_demanda.csv")
-    st.caption("Objetivo (y): pedidos diarios. Variables (X): calendario, pedidos de ayer, hace 7 días y media previa de 7 días.")
+    if es_anual:
+        st.caption("Objetivo (y): pedidos diarios. Variables (X) del horizonte anual: "
+                   "día de semana, mes, fin de semana, día de mes y estacionalidad. No hay lags futuros.")
+    else:
+        st.caption("Objetivo (y): pedidos diarios. Variables (X): calendario y, según el enfoque, "
+                   "datos recientes, mismo día del año anterior o ambos.")
 
 elif pagina == PAGINAS[3]:
     hero(
@@ -469,8 +592,12 @@ elif pagina == PAGINAS[3]:
 
     aviso(f"<b>Método para la rentabilidad:</b> {modo_facturacion}. "
           "Puedes cambiarlo en «Editar escenario económico», en el menú lateral.")
-    seccion("Comparación diaria")
-    linea(escenario, "date", ["facturacion_por_ticket", "facturacion_ml"],
+    seccion("Comparación mensual" if es_anual else "Comparación diaria")
+    datos_grafico_ventas = (escenario.assign(
+        date=escenario["date"].dt.to_period("M").dt.to_timestamp()
+    ).groupby("date", as_index=False)[["facturacion_por_ticket", "facturacion_ml"]].sum()
+        if es_anual else escenario)
+    linea(datos_grafico_ventas, "date", ["facturacion_por_ticket", "facturacion_ml"],
           nombres={"facturacion_por_ticket": "Pedidos × ticket", "facturacion_ml": "ML directo"},
           titulo_y="Ingresos (€)", puntos=True)
 
@@ -499,8 +626,12 @@ elif pagina == PAGINAS[4]:
 
     a, b = st.columns([1.35, 1])
     with a:
-        seccion("Beneficio diario estimado")
-        linea(escenario, "date", ["beneficio_operativo"],
+        seccion("Beneficio mensual estimado" if es_anual else "Beneficio diario estimado")
+        datos_grafico_beneficio = (escenario.assign(
+            date=escenario["date"].dt.to_period("M").dt.to_timestamp()
+        ).groupby("date", as_index=False)["beneficio_operativo"].sum()
+            if es_anual else escenario)
+        linea(datos_grafico_beneficio, "date", ["beneficio_operativo"],
               nombres={"beneficio_operativo": "Beneficio (€)"},
               titulo_y="Beneficio operativo (€)", puntos=True)
     with b:
@@ -523,6 +654,7 @@ elif pagina == PAGINAS[4]:
         alternativa = calcular_rentabilidad(
             forecast, ticket, cogs_alterno, personal_mensual, fijos_mensuales,
             dias_apertura, usar_facturacion_ml=(modo_facturacion == "Predicción directa ML"),
+            repartir_coste_mensual=es_anual,
         )
     with c2:
         beneficio_alterno = float(alternativa["beneficio_operativo"].sum())
@@ -597,10 +729,44 @@ elif pagina == PAGINAS[5]:
         if formula_path.exists():
             seccion("Método adicional: pedidos × ticket")
             st.dataframe(pd.read_csv(formula_path).round(2), use_container_width=True, hide_index=True)
-    st.caption("Los modelos no se reentrenan aquí; se utilizan los archivos .joblib ya guardados.")
+    # Resultados del experimento anual, independientes de la evaluación original.
+    comparacion_enfoques_path = carpeta_enfoques / "comparacion_enfoques.csv"
+    comparacion_horizonte_path = carpeta_enfoques / "comparacion_horizonte.csv"
+    if comparacion_enfoques_path.exists():
+        st.divider()
+        seccion("Comparación de enfoques temporales",
+                "A (reciente), B (mismo día del año anterior) y C (combinado). "
+                "Los tres se evalúan sobre las mismas fechas.")
+        enfoque_tipo = st.radio(
+            "Comparar variable", ["demanda", "facturacion"], horizontal=True,
+            key="enfoque_tipo"
+        )
+        resultados = pd.read_csv(comparacion_enfoques_path)
+        vista_resultados = resultados[resultados["Objetivo"] == enfoque_tipo]
+        st.markdown("**Evaluación a un día vista**")
+        st.dataframe(vista_resultados[["Enfoque", "Modelo", "MAE", "RMSE", "R2"]].round(3),
+                     use_container_width=True, hide_index=True)
+        if comparacion_horizonte_path.exists():
+            st.markdown("**Evaluación de predicciones de varios días (backtest por bloques)**")
+            bloques = pd.read_csv(comparacion_horizonte_path)
+            sub_bloques = bloques[bloques["Objetivo"] == enfoque_tipo]
+            st.dataframe(sub_bloques[["Enfoque", "Modelo", "Horizonte_max_dias",
+                                     "MAE", "RMSE", "R2"]].round(3),
+                         use_container_width=True, hide_index=True)
+            st.caption("En cada bloque, los modelos solo utilizan datos reales anteriores "
+                       "al inicio del bloque. Un menor MAE/RMSE indica menos error.")
+    st.divider()
+    seccion("Modelos de proyección anual (2027 por defecto)",
+            "Validados con el último año disponible (2024), entrenados en 2015–2023; "
+            "para predecir se ajusta el ganador con 2015–2024.")
+    modelos_cal, resultados_cal = modelos_largo_plazo()
+    st.dataframe(resultados_cal.round(3), hide_index=True, use_container_width=True)
+    tabla_csv(resultados_cal, "comparacion_calendario_largo_plazo.csv", "Descargar evaluación anual")
+    st.caption("Los enfoques anteriores siguen disponibles para corto plazo. "
+               "El modelo anual se entrena con calendario, sin ventas reales de 2025/2026.")
 
 st.markdown(
     '<div class="footer-note">Sushi Analytics · Aplicación educativa en Streamlit · '
-    'Datos históricos 2015–2024 · Pronósticos basados en modelos guardados.</div>',
+    'Datos históricos 2015–2024 · Pronóstico anual estacional o de corto plazo.</div>',
     unsafe_allow_html=True,
 )

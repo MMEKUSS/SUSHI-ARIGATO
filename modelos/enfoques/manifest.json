@@ -1,0 +1,242 @@
+{
+  "version": 1,
+  "fecha_entrenamiento_hasta": "2023-03-14",
+  "prueba_desde": "2023-03-15",
+  "prueba_hasta": "2024-12-31",
+  "enfoques": {
+    "actual": {
+      "demanda": [
+        {
+          "modelo": "HistGradientBoosting",
+          "archivo": "demanda_actual_histgradientboosting_bcea82d5.joblib"
+        },
+        {
+          "modelo": "SVR",
+          "archivo": "demanda_actual_svr_b1701bbc.joblib"
+        },
+        {
+          "modelo": "KNN",
+          "archivo": "demanda_actual_knn_edb78a9e.joblib"
+        },
+        {
+          "modelo": "Gradient Boosting",
+          "archivo": "demanda_actual_gradient_boosting_ee971e38.joblib"
+        },
+        {
+          "modelo": "Random Forest",
+          "archivo": "demanda_actual_random_forest_0905d28e.joblib"
+        },
+        {
+          "modelo": "XGBoost",
+          "archivo": "demanda_actual_xgboost_e63bae25.joblib"
+        },
+        {
+          "modelo": "Linear Regression",
+          "archivo": "demanda_actual_linear_regression_0011259a.joblib"
+        },
+        {
+          "modelo": "Ridge",
+          "archivo": "demanda_actual_ridge_c1d64e58.joblib"
+        },
+        {
+          "modelo": "Decision Tree",
+          "archivo": "demanda_actual_decision_tree_3504ce41.joblib"
+        }
+      ],
+      "facturacion": [
+        {
+          "modelo": "KNN",
+          "archivo": "facturacion_actual_knn_edb78a9e.joblib"
+        },
+        {
+          "modelo": "Gradient Boosting",
+          "archivo": "facturacion_actual_gradient_boosting_ee971e38.joblib"
+        },
+        {
+          "modelo": "Random Forest",
+          "archivo": "facturacion_actual_random_forest_0905d28e.joblib"
+        },
+        {
+          "modelo": "HistGradientBoosting",
+          "archivo": "facturacion_actual_histgradientboosting_bcea82d5.joblib"
+        },
+        {
+          "modelo": "XGBoost",
+          "archivo": "facturacion_actual_xgboost_e63bae25.joblib"
+        },
+        {
+          "modelo": "Linear Regression",
+          "archivo": "facturacion_actual_linear_regression_0011259a.joblib"
+        },
+        {
+          "modelo": "Ridge",
+          "archivo": "facturacion_actual_ridge_c1d64e58.joblib"
+        },
+        {
+          "modelo": "Decision Tree",
+          "archivo": "facturacion_actual_decision_tree_3504ce41.joblib"
+        },
+        {
+          "modelo": "SVR",
+          "archivo": "facturacion_actual_svr_b1701bbc.joblib"
+        }
+      ]
+    },
+    "anual": {
+      "demanda": [
+        {
+          "modelo": "HistGradientBoosting",
+          "archivo": "demanda_anual_histgradientboosting_bcea82d5.joblib"
+        },
+        {
+          "modelo": "SVR",
+          "archivo": "demanda_anual_svr_b1701bbc.joblib"
+        },
+        {
+          "modelo": "KNN",
+          "archivo": "demanda_anual_knn_edb78a9e.joblib"
+        },
+        {
+          "modelo": "Gradient Boosting",
+          "archivo": "demanda_anual_gradient_boosting_ee971e38.joblib"
+        },
+        {
+          "modelo": "Random Forest",
+          "archivo": "demanda_anual_random_forest_0905d28e.joblib"
+        },
+        {
+          "modelo": "XGBoost",
+          "archivo": "demanda_anual_xgboost_e63bae25.joblib"
+        },
+        {
+          "modelo": "Linear Regression",
+          "archivo": "demanda_anual_linear_regression_0011259a.joblib"
+        },
+        {
+          "modelo": "Ridge",
+          "archivo": "demanda_anual_ridge_c1d64e58.joblib"
+        },
+        {
+          "modelo": "Decision Tree",
+          "archivo": "demanda_anual_decision_tree_3504ce41.joblib"
+        }
+      ],
+      "facturacion": [
+        {
+          "modelo": "KNN",
+          "archivo": "facturacion_anual_knn_edb78a9e.joblib"
+        },
+        {
+          "modelo": "Gradient Boosting",
+          "archivo": "facturacion_anual_gradient_boosting_ee971e38.joblib"
+        },
+        {
+          "modelo": "Random Forest",
+          "archivo": "facturacion_anual_random_forest_0905d28e.joblib"
+        },
+        {
+          "modelo": "HistGradientBoosting",
+          "archivo": "facturacion_anual_histgradientboosting_bcea82d5.joblib"
+        },
+        {
+          "modelo": "XGBoost",
+          "archivo": "facturacion_anual_xgboost_e63bae25.joblib"
+        },
+        {
+          "modelo": "Linear Regression",
+          "archivo": "facturacion_anual_linear_regression_0011259a.joblib"
+        },
+        {
+          "modelo": "Ridge",
+          "archivo": "facturacion_anual_ridge_c1d64e58.joblib"
+        },
+        {
+          "modelo": "Decision Tree",
+          "archivo": "facturacion_anual_decision_tree_3504ce41.joblib"
+        },
+        {
+          "modelo": "SVR",
+          "archivo": "facturacion_anual_svr_b1701bbc.joblib"
+        }
+      ]
+    },
+    "combinado": {
+      "demanda": [
+        {
+          "modelo": "HistGradientBoosting",
+          "archivo": "demanda_combinado_histgradientboosting_bcea82d5.joblib"
+        },
+        {
+          "modelo": "SVR",
+          "archivo": "demanda_combinado_svr_b1701bbc.joblib"
+        },
+        {
+          "modelo": "KNN",
+          "archivo": "demanda_combinado_knn_edb78a9e.joblib"
+        },
+        {
+          "modelo": "Gradient Boosting",
+          "archivo": "demanda_combinado_gradient_boosting_ee971e38.joblib"
+        },
+        {
+          "modelo": "Random Forest",
+          "archivo": "demanda_combinado_random_forest_0905d28e.joblib"
+        },
+        {
+          "modelo": "XGBoost",
+          "archivo": "demanda_combinado_xgboost_e63bae25.joblib"
+        },
+        {
+          "modelo": "Linear Regression",
+          "archivo": "demanda_combinado_linear_regression_0011259a.joblib"
+        },
+        {
+          "modelo": "Ridge",
+          "archivo": "demanda_combinado_ridge_c1d64e58.joblib"
+        },
+        {
+          "modelo": "Decision Tree",
+          "archivo": "demanda_combinado_decision_tree_3504ce41.joblib"
+        }
+      ],
+      "facturacion": [
+        {
+          "modelo": "KNN",
+          "archivo": "facturacion_combinado_knn_edb78a9e.joblib"
+        },
+        {
+          "modelo": "Gradient Boosting",
+          "archivo": "facturacion_combinado_gradient_boosting_ee971e38.joblib"
+        },
+        {
+          "modelo": "Random Forest",
+          "archivo": "facturacion_combinado_random_forest_0905d28e.joblib"
+        },
+        {
+          "modelo": "HistGradientBoosting",
+          "archivo": "facturacion_combinado_histgradientboosting_bcea82d5.joblib"
+        },
+        {
+          "modelo": "XGBoost",
+          "archivo": "facturacion_combinado_xgboost_e63bae25.joblib"
+        },
+        {
+          "modelo": "Linear Regression",
+          "archivo": "facturacion_combinado_linear_regression_0011259a.joblib"
+        },
+        {
+          "modelo": "Ridge",
+          "archivo": "facturacion_combinado_ridge_c1d64e58.joblib"
+        },
+        {
+          "modelo": "Decision Tree",
+          "archivo": "facturacion_combinado_decision_tree_3504ce41.joblib"
+        },
+        {
+          "modelo": "SVR",
+          "archivo": "facturacion_combinado_svr_b1701bbc.joblib"
+        }
+      ]
+    }
+  }
+}
