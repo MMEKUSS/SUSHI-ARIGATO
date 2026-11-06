@@ -67,18 +67,12 @@ comparacion_f = pd.read_csv(MODELOS / "comparacion_facturacion.csv")
 
 st.title("🍣 Mi restaurante | Predicciones con Machine Learning")
 st.caption("Caso de estudio: restaurante de sushi (datos históricos 2015–2024). No corresponde al restaurante africano que quiero abrir.")
-st.warning("El histórico termina el 31/12/2024. Las previsiones arrancan el 01/01/2025")
+st.warning("El histórico termina el 31/12/2024. Las previsiones arrancan el 01/01/2025·")
 
 st.sidebar.header("Configuración de la previsión")
 modelo_d = st.sidebar.selectbox("Modelo de demanda", comparacion_d["Modelo"].tolist(), index=0)
 modelo_f = st.sidebar.selectbox("Modelo de facturación", comparacion_f["Modelo"].tolist(), index=0)
 dias = st.sidebar.slider("Días consecutivos previstos", min_value=1, max_value=30, value=14)
-
-st.info(
-    "Las predicciones de varios días utilizan resultados "
-    "estimados de días anteriores. Por tanto, la incertidumbre "
-    "puede aumentar cuanto más lejano sea el día previsto."
-)
 
 st.sidebar.divider()
 st.sidebar.header("Escenario económico (editable)")
@@ -176,7 +170,7 @@ with tab3:
 
 with tab4:
     st.subheader("Rentabilidad: facturación menos costes")
-    st.latex(r"\text{Beneficio operativo} = \text{Facturación} - \text{Coste variables} - \text{Personal} - \text{Costes fijos}")
+    st.latex(r"\text{Beneficio operativo} = \text{Facturación} - \text{Ingredientes} - \text{Personal} - \text{Costes fijos}")
     total_ventas = escenario["facturacion_prevista"].sum()
     total_beneficio = escenario["beneficio_operativo"].sum()
     r1, r2, r3, r4 = st.columns(4)
