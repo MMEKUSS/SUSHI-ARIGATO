@@ -46,79 +46,335 @@ DORADO = "#C69B51"
 CREMA = "#F7F4EC"
 GRIS = "#718278"
 
+
 st.markdown(
     """
     <style>
-        /* Estructura general */
-        .stApp { background: #F7F4EC; color: #1C3329; }
-        [data-testid="stHeader"] { background: rgba(247,244,236,.92); }
-        [data-testid="stAppViewContainer"] > .main { background: transparent; }
-        .block-container { max-width: 1450px; padding-top: 1.8rem; padding-bottom: 3rem; }
-        h1, h2, h3 { color: #1D3C2D; letter-spacing: -0.025em; }
-        h3 { font-weight: 750; }
+        /* =========================================
+           1. ESTRUCTURA GENERAL
+        ========================================= */
+        .stApp {
+            background: #F7F4EC;
+            color: #1C3329;
+            font-size: 18px;
+        }
+
+        [data-testid="stHeader"] {
+            background: rgba(247,244,236,.92);
+        }
+
+        [data-testid="stAppViewContainer"] > .main {
+            background: transparent;
+        }
+
+        .block-container {
+            max-width: 1450px;
+            padding-top: 1.8rem;
+            padding-bottom: 3rem;
+        }
+
+        h1, h2, h3 {
+            color: #1D3C2D;
+            letter-spacing: -0.025em;
+        }
+
+        h1 { font-size: 42px; }
+        h2 { font-size: 34px; }
+        h3 {
+            font-size: 27px;
+            font-weight: 750;
+        }
+
         hr { border-color: #E6E5DB; }
 
-        /* Barra lateral. El tema TOML ajusta los controles y sus contrastes. */
-        [data-testid="stSidebar"] { background: #173B2C; }
+        /* =========================================
+           2. BARRA LATERAL
+        ========================================= */
+        [data-testid="stSidebar"] {
+            background: #173B2C;
+        }
+
         [data-testid="stSidebar"] h1,
         [data-testid="stSidebar"] h2,
-        [data-testid="stSidebar"] h3 { color: #F7F4EC; }
-        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color: #F3F4EC; }
-        [data-testid="stSidebar"] .stCaption { color: #CDD9CD; }
+        [data-testid="stSidebar"] h3 {
+            color: #F7F4EC;
+        }
+
+        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
+            color: #F3F4EC;
+            font-size: 17px;
+        }
+
+        [data-testid="stSidebar"] .stCaption {
+            color: #CDD9CD;
+            font-size: 14px;
+        }
+
         [data-testid="stSidebar"] [role="radiogroup"] label {
-            border-radius: 11px; padding: 7px 10px;
+            border-radius: 11px;
+            padding: 10px 12px;
             transition: background 120ms ease;
         }
+
         [data-testid="stSidebar"] [role="radiogroup"] label:hover {
             background: rgba(255,255,255,.11);
         }
 
-        /* Cabecera y secciones */
-        .brand { display:flex; align-items:center; gap:13px; padding: 13px 0 20px; }
-        .brand-icon { display:flex; align-items:center; justify-content:center;
-            width:49px; height:49px; background:#2D654C; border-radius:15px; font-size:26px; }
-        .brand-name { font-weight:850; letter-spacing:.07em; color:#FAF8EF; font-size:17px; }
-        .brand-subtitle { font-size:10px; letter-spacing:.16em; color:#D4C89B; }
-        .eyebrow { letter-spacing:.17em; text-transform:uppercase; font-size:11px;
-            color:#D5B26D; font-weight:800; margin-bottom:7px; }
-        .hero { background: linear-gradient(118deg,#173B2C 0%,#285A42 68%,#467653 100%);
-            border-radius:22px; padding:30px 35px; margin-bottom:25px; color:#F8F6EC;
-            box-shadow:0 13px 35px rgba(26,61,45,.12); }
-        .hero h1 { color:#FFFFFF; font-size:clamp(27px,3vw,41px); margin:0 0 9px;
-            line-height:1.13; font-weight:800; }
-        .hero p { color:#E3EEE2; font-size:14px; margin:0; line-height:1.6; }
-        .hero-badge { display:inline-block; margin-top:14px; border:1px solid rgba(255,255,255,.3);
-            color:#FAF5E5; padding:6px 11px; border-radius:30px; font-size:11px; }
-        .section-heading { margin-top:12px; margin-bottom:13px; font-size:20px; font-weight:800;
-            color:#213F2F; letter-spacing:-.025em; }
-        .helper { color:#65786B; font-size:13px; line-height:1.65; margin:5px 0 18px; }
-        .notice { color:#52675A; padding:12px 16px; background:#EDEFE3;
-            border-left:4px solid #C69B51; border-radius:9px; margin:10px 0 20px;
-            font-size:13px; line-height:1.5; }
-        .footer-note { font-size:12px; color:#78867A; margin-top:20px; }
-        .mini-label { letter-spacing:.08em; text-transform:uppercase; font-size:11px;
-            color:#C69B51; font-weight:800; }
+        /* Texto e iconos del menú lateral */
+        [data-testid="stSidebar"] [role="radiogroup"] label p {
+            font-size: 19px !important;
+            line-height: 1.6;
+        }
 
-        /* KPI cards */
-        [data-testid="stMetric"] { background:#FFFFFF; border:1px solid #E8E9E0;
-            border-radius:17px; padding:18px 20px; min-height:122px;
-            box-shadow:0 5px 15px rgba(25,62,43,.045); }
-        [data-testid="stMetricLabel"] { color:#617366; font-size:13px; }
-        [data-testid="stMetricValue"] { color:#1D5038; font-size:clamp(21px,2.4vw,29px); }
-        [data-testid="stMetricDelta"] { font-size:12px; }
+        /* =========================================
+           3. CABECERA Y LOGOTIPO
+        ========================================= */
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 13px 0 20px;
+        }
 
-        /* Contenedores, tablas y botones */
-        [data-testid="stVerticalBlockBorderWrapper"] > div { border-radius:15px; }
-        [data-testid="stDataFrame"] { border:1px solid #E4E8DF; border-radius:12px; }
-        .stButton > button[kind="primary"], .stDownloadButton > button {
-            background:#255B43; color:white; border:1px solid #255B43;
-            border-radius:10px; padding:9px 15px; font-weight:650; }
-        .stButton > button[kind="primary"]:hover, .stDownloadButton > button:hover {
-            background:#347657; color:white; border-color:#347657; }
-        .stAlert { border-radius:12px; }
+        .brand-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 65px;
+            height: 65px;
+            background: #2D654C;
+            border-radius: 15px;
+            font-size: 38px;
+        }
+
+        .brand-name {
+            font-weight: 850;
+            letter-spacing: .07em;
+            color: #FAF8EF;
+            font-size: 22px;
+        }
+
+        .brand-subtitle {
+            font-size: 13px;
+            letter-spacing: .16em;
+            color: #D4C89B;
+        }
+
+        /* =========================================
+           4. ENCABEZADO PRINCIPAL
+        ========================================= */
+        .eyebrow {
+            letter-spacing: .17em;
+            text-transform: uppercase;
+            font-size: 14px;
+            color: #D5B26D;
+            font-weight: 800;
+            margin-bottom: 7px;
+        }
+
+        .hero {
+            background: linear-gradient(
+                118deg,
+                #173B2C 0%,
+                #285A42 68%,
+                #467653 100%
+            );
+            border-radius: 22px;
+            padding: 30px 35px;
+            margin-bottom: 25px;
+            color: #F8F6EC;
+            box-shadow: 0 13px 35px rgba(26,61,45,.12);
+        }
+
+        .hero h1 {
+            color: #FFFFFF;
+            font-size: clamp(34px, 3.5vw, 48px);
+            margin: 0 0 9px;
+            line-height: 1.13;
+            font-weight: 800;
+        }
+
+        .hero p {
+            color: #E3EEE2;
+            font-size: 19px;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            margin-top: 14px;
+            border: 1px solid rgba(255,255,255,.3);
+            color: #FAF5E5;
+            padding: 8px 13px;
+            border-radius: 30px;
+            font-size: 14px;
+        }
+
+        /* =========================================
+           5. SECCIONES Y TEXTOS
+        ========================================= */
+        .section-heading {
+            margin-top: 12px;
+            margin-bottom: 13px;
+            font-size: 27px;
+            font-weight: 800;
+            color: #213F2F;
+            letter-spacing: -.025em;
+        }
+
+        .helper {
+            color: #65786B;
+            font-size: 17px;
+            line-height: 1.65;
+            margin: 5px 0 18px;
+        }
+
+        .notice {
+            color: #52675A;
+            padding: 12px 16px;
+            background: #EDEFE3;
+            border-left: 4px solid #C69B51;
+            border-radius: 9px;
+            margin: 10px 0 20px;
+            font-size: 17px;
+            line-height: 1.5;
+        }
+
+        .footer-note {
+            font-size: 15px;
+            color: #78867A;
+            margin-top: 20px;
+        }
+
+        .mini-label {
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            font-size: 14px;
+            color: #C69B51;
+            font-weight: 800;
+        }
+
+        /* =========================================
+           6. TARJETAS KPI
+        ========================================= */
+        [data-testid="stMetric"] {
+            background: #FFFFFF;
+            border: 1px solid #E8E9E0;
+            border-radius: 17px;
+            padding: 20px 22px;
+            min-height: 135px;
+            box-shadow: 0 5px 15px rgba(25,62,43,.045);
+        }
+
+        [data-testid="stMetricLabel"] {
+            color: #617366;
+            font-size: 17px;
+        }
+
+        [data-testid="stMetricLabel"] p {
+            font-size: 17px !important;
+        }
+
+        [data-testid="stMetricValue"] {
+            color: #1D5038;
+            font-size: clamp(27px, 2.8vw, 36px);
+        }
+
+        [data-testid="stMetricValue"] > div {
+            font-size: inherit;
+        }
+
+        [data-testid="stMetricDelta"] {
+            font-size: 15px;
+        }
+
+        /* =========================================
+           7. CONTROLES INTERACTIVOS
+        ========================================= */
+        [data-testid="stWidgetLabel"] p {
+            font-size: 17px !important;
+        }
+
+        [data-testid="stNumberInput"] input,
+        [data-testid="stTextInput"] input {
+            font-size: 18px;
+        }
+
+        [data-testid="stSelectbox"] {
+            font-size: 17px;
+        }
+
+        /* =========================================
+           8. CONTENEDORES Y TABLAS
+        ========================================= */
+        [data-testid="stVerticalBlockBorderWrapper"] > div {
+            border-radius: 15px;
+        }
+
+        [data-testid="stDataFrame"] {
+            border: 1px solid #E4E8DF;
+            border-radius: 12px;
+        }
+
+        /* =========================================
+           9. BOTONES
+        ========================================= */
+        .stButton > button,
+        .stDownloadButton > button {
+            font-size: 17px !important;
+            padding: 11px 18px;
+            border-radius: 10px;
+            font-weight: 650;
+        }
+
+        .stButton > button[kind="primary"],
+        .stDownloadButton > button {
+            background: #255B43;
+            color: white;
+            border: 1px solid #255B43;
+        }
+
+        .stButton > button[kind="primary"]:hover,
+        .stDownloadButton > button:hover {
+            background: #347657;
+            color: white;
+            border-color: #347657;
+        }
+
+        .stAlert {
+            border-radius: 12px;
+        }
+
+        /* =========================================
+           10. ADAPTACIÓN A PANTALLAS PEQUEÑAS
+        ========================================= */
         @media (max-width: 800px) {
-            .hero { padding:22px 20px; }
-            .block-container { padding-top:1.1rem; }
+            .hero {
+                padding: 22px 20px;
+            }
+
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .block-container {
+                padding-top: 1.1rem;
+            }
+
+            .section-heading {
+                font-size: 23px;
+            }
+
+            [data-testid="stMetricValue"] {
+                font-size: 28px;
+            }
+
+            .brand-icon {
+                width: 55px;
+                height: 55px;
+                font-size: 32px;
+            }
         }
     </style>
     """,
@@ -267,12 +523,12 @@ st.sidebar.markdown(
 )
 
 PAGINAS = [
-    "◈  Dashboard",
-    "▥  Histórico",
-    "◷  Demanda",
-    "◉  Facturación",
-    "▣  Rentabilidad",
-    "◇  Modelos ML",
+    "🏠  Dashboard",
+    "📊  Histórico",
+    "📈  Demanda",
+    "💰  Facturación",
+    "💵  Rentabilidad",
+    "🧠  Modelos ML",
 ]
 st.sidebar.markdown("**MENÚ PRINCIPAL**")
 pagina = st.sidebar.radio("Selecciona la sección", PAGINAS, label_visibility="collapsed")
@@ -579,7 +835,7 @@ elif pagina == PAGINAS[2]:
 
 elif pagina == PAGINAS[3]:
     hero(
-        "Cuánto podrías facturar",
+        "Cuánto podrías facturar",ash
         "Compara dos enfoques para estimar ingresos sin modificar tus modelos entrenados.",
         etiqueta="INTELIGENCIA PREDICTIVA · INGRESOS",
     )
