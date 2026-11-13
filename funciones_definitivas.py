@@ -35,7 +35,7 @@ from backend import (
 # 1. CONFIGURACIÓN Y ESTILO VISUAL — TEMA JAPONÉS
 # -----------------------------------------------------------------------------
 st.set_page_config(
-    page_title="Sushi Analytics | Restaurant Management",
+    page_title="Sushi Arigato | Restaurant Management",
     page_icon="🍣",
     layout="wide",
     initial_sidebar_state="expanded",
