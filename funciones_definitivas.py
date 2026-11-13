@@ -1,4 +1,4 @@
-"""Sushi Analytics — interfaz Restaurant Management para Streamlit.
+"""Sushi Arigato — interfaz Restaurant Management para Streamlit.
 
 La previsión anual se entrena con modelos estacionales, mientras que la de
 corto plazo conserva los modelos originales guardados.
@@ -434,7 +434,7 @@ except Exception as error:
 
 st.sidebar.markdown(
     """<div class="brand"><div class="brand-icon">🍣</div><div>
-    <div class="brand-name">SUSHI ANALYTICS</div>
+    <div class="brand-name">SUSHI ARIGATO</div>
     <div class="brand-subtitle">RESTAURANT MANAGEMENT</div>
     </div></div>""",
     unsafe_allow_html=True,
@@ -1000,7 +1000,7 @@ elif pagina == PAGINAS[5]:
                "El modelo anual se entrena con calendario, sin ventas reales de 2025/2026.")
 
 st.markdown(
-    '<div class="footer-note">Sushi Analytics · Aplicación educativa en Streamlit · '
+    '<div class="footer-note">Sushi Arigato · Aplicación educativa en Streamlit · '
     'Datos históricos 2015–2024 · Pronóstico anual estacional o de corto plazo.</div>',
     unsafe_allow_html=True,
 )
