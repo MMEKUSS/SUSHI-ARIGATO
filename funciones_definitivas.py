@@ -8,6 +8,7 @@ Ejecutar: python -m streamlit run funciones.py
 
 from pathlib import Path
 import json
+import base64
 import joblib
 
 import altair as alt
@@ -31,7 +32,7 @@ from backend import (
 )
 
 # -----------------------------------------------------------------------------
-# 1. CONFIGURACIÓN Y ESTILO VISUAL
+# 1. CONFIGURACIÓN Y ESTILO VISUAL — TEMA JAPONÉS
 # -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="Sushi Analytics | Restaurant Management",
@@ -40,90 +41,243 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-VERDE = "#255B43"
-VERDE_OSCURO = "#173B2C"
-DORADO = "#C69B51"
-CREMA = "#F7F4EC"
-GRIS = "#718278"
+# Paleta japonesa inspirada en tinta sumi-e, pergamino y sol rojo.
+# No cambiamos las predicciones, los datos ni los modelos del backend.
+ROJO = "#B3261E"
+ROJO_OSCURO = "#871E1B"
+DORADO = "#C39A4C"
+CREMA = "#F4E8C8"
+MARFIL = "#FFF9EC"
+TINTA = "#251D18"
+MARRON = "#382D27"
+GRIS = "#796A5B"
+BORDE = "#D8C6A1"
 
+# Ilustración vectorial ligera. Va integrada en este mismo .py, sin imágenes
+# externas ni carpetas adicionales: sol japonés, montañas y cañas de bambú.
+# El resultado es decorativo y no reproduce literalmente la fotografía original.
+ARTE_JAPONES = r"""<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="320" viewBox="0 0 1400 320">
+<defs>
+  <linearGradient id="sun" x1="0" x2="0.75" y1="0" y2="1">
+    <stop offset="0" stop-color="#C45742"/><stop offset="1" stop-color="#AD2A20"/>
+  </linearGradient>
+  <linearGradient id="haze" x1="0" x2="0" y1="0" y2="1">
+    <stop offset="0" stop-color="#998E7D" stop-opacity="0.02"/>
+    <stop offset="1" stop-color="#6E6858" stop-opacity="0.2"/>
+  </linearGradient>
+</defs>
+<circle cx="1132" cy="132" r="87" fill="url(#sun)" opacity=".76"/>
+<circle cx="1132" cy="132" r="93" fill="none" stroke="#A5362A" stroke-width="1" opacity=".14"/>
+<path d="M700 290 L796 234 L835 251 L910 210 L960 242 L1040 191 L1110 245 L1218 201 L1273 230 L1400 172 L1400 320 L700 320Z" fill="url(#haze)"/>
+<path d="M594 309 Q760 270 842 294 Q934 261 1030 295 Q1130 261 1225 281 Q1311 248 1400 277 L1400 320 L594 320Z" fill="#726B60" opacity=".14"/>
+<path d="M680 315 Q960 285 1098 304 T1400 295" fill="none" stroke="#8A7860" stroke-width="3" opacity=".16"/>
+<!-- Tinta de un pequeño templo de cinco aleros, al pie de las montañas. -->
+<g transform="translate(897,218)" fill="#403A32" opacity=".25">
+  <rect x="31" y="30" width="21" height="58"/><rect x="22" y="53" width="39" height="35"/>
+  <path d="M5 28 Q41 34 79 28 L67 40 L18 40Z"/>
+  <path d="M12 49 Q41 54 72 49 L63 58 L20 58Z"/>
+  <path d="M18 68 Q41 74 66 68 L58 77 L24 77Z"/>
+  <rect x="39" y="11" width="3" height="21"/>
+</g>
+<!-- Bambú en tinta, a la derecha de la cabecera. -->
+<g fill="none" stroke="#302D25" stroke-linecap="round" opacity=".62">
+  <path d="M1300 -20 C1280 89 1301 187 1277 350" stroke-width="7"/>
+  <path d="M1367 -25 C1338 90 1368 201 1348 340" stroke-width="5"/>
+  <path d="M1276 145 Q1216 94 1161 93" stroke-width="4"/>
+  <path d="M1294 70 Q1340 38 1390 39" stroke-width="4"/>
+  <path d="M1358 191 Q1307 177 1263 199" stroke-width="4"/>
+  <path d="M1305 226 Q1246 211 1207 236" stroke-width="3"/>
+</g>
+<g fill="#252820" opacity=".56">
+  <path d="M1278 132 Q1215 78 1179 78 Q1206 109 1278 132Z"/>
+  <path d="M1262 120 Q1221 64 1193 57 Q1212 92 1262 120Z"/>
+  <path d="M1250 106 Q1196 98 1156 113 Q1192 120 1250 106Z"/>
+  <path d="M1300 74 Q1321 14 1368 -4 Q1356 34 1300 74Z"/>
+  <path d="M1318 54 Q1381 12 1419 20 Q1377 51 1318 54Z"/>
+  <path d="M1315 56 Q1336 4 1332 -29 Q1307 1 1315 56Z"/>
+  <path d="M1347 176 Q1297 148 1261 151 Q1290 177 1347 176Z"/>
+  <path d="M1339 182 Q1294 200 1275 226 Q1314 211 1339 182Z"/>
+  <path d="M1304 225 Q1262 201 1225 202 Q1249 226 1304 225Z"/>
+  <path d="M1280 231 Q1220 225 1191 256 Q1234 248 1280 231Z"/>
+  <path d="M1352 109 Q1394 75 1419 84 Q1398 109 1352 109Z"/>
+  <path d="M1354 127 Q1393 121 1422 148 Q1390 145 1354 127Z"/>
+  <path d="M1353 260 Q1391 225 1430 231 Q1399 259 1353 260Z"/>
+</g>
+<g stroke="#625847" stroke-opacity=".17" fill="none" stroke-width="1.5">
+  <path d="M710 297 Q817 280 906 288"/><path d="M936 310 Q1013 295 1101 301"/>
+  <path d="M1157 308 Q1227 290 1321 299"/>
+</g>
+</svg>"""
+
+ARTE_JAPONES_URL = (
+    "data:image/svg+xml;base64,"
+    + base64.b64encode(ARTE_JAPONES.encode("utf-8")).decode("ascii")
+)
+
+CSS_JAPONES = r"""
+<style>
+/* Un tema uniforme: fondo pergamino + tinta + dorado + rojo japonés. */
+:root {
+    --japan-red: #B3261E;
+    --japan-dark-red: #871E1B;
+    --japan-gold: #C39A4C;
+    --japan-ink: #251D18;
+    --japan-brown: #382D27;
+    --japan-ivory: #FFF9EC;
+    --japan-border: #D8C6A1;
+}
+html, body, [data-testid="stAppViewContainer"] {
+    font-family: "Segoe UI", "Noto Sans", sans-serif;
+}
+.stApp {
+    color: #251D18;
+    background-color: #F4E8C8;
+    background-image:
+        radial-gradient(circle at 1px 1px, rgba(111, 79, 39, .055) 0.7px, transparent 1px),
+        radial-gradient(ellipse at 17% 10%, #FAF1DB 0%, #F4E8C8 63%, #E8D5AB 100%);
+    background-size: 7px 7px, auto;
+}
+[data-testid="stHeader"] { background: rgba(246, 236, 213, .93); }
+[data-testid="stAppViewContainer"] > .main { background: transparent; }
+.block-container { max-width: 1450px; padding-top: 1.7rem; padding-bottom: 3.5rem; }
+h1, h2, h3, h4 { color: #251D18; letter-spacing: -.025em; }
+h1 { font-weight: 800; }
+h3 { font-weight: 750; }
+hr { border-color: #D8C6A1; }
+/* Evita texto verde heredado del estilo anterior. */
+[data-testid="stAppViewContainer"] p,
+[data-testid="stAppViewContainer"] label,
+[data-testid="stAppViewContainer"] [data-testid="stCaptionContainer"] { color: #43372F; }
+[data-testid="stAppViewContainer"] a { color: #972620; }
+/* Navegación inspirada en tinta sumi-e. */
+[data-testid="stSidebar"] {
+    background: linear-gradient(170deg, #382D27 0%, #2D2723 100%);
+    border-right: 2px solid #B38C50;
+}
+[data-testid="stSidebar"] h1,
+[data-testid="stSidebar"] h2,
+[data-testid="stSidebar"] h3,
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+[data-testid="stSidebar"] .stCaption,
+[data-testid="stSidebar"] [data-testid="stCaptionContainer"] {
+    color: #F8EEDC;
+}
+[data-testid="stSidebar"] hr { border-color: rgba(244, 231, 207, .23); }
+[data-testid="stSidebar"] [role="radiogroup"] label {
+    border-radius: 10px;
+    padding: 9px 10px;
+    transition: background 150ms ease;
+}
+[data-testid="stSidebar"] [role="radiogroup"] label:hover {
+    background: rgba(255, 241, 211, .11);
+}
+[data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) {
+    background: rgba(179, 38, 30, .27);
+    box-shadow: inset 3px 0 #D1A357;
+}
+[data-testid="stSidebar"] [role="radiogroup"] input { accent-color: #C44A39; }
+/* Entradas claras sobre el menú oscuro, para mayor legibilidad. */
+[data-testid="stSidebar"] input:not([type="radio"]),
+[data-testid="stSidebar"] [data-baseweb="select"] > div,
+[data-testid="stSidebar"] [data-testid="stNumberInput"] > div,
+[data-testid="stSidebar"] [data-testid="stNumberInput"] button {
+    background: #FFF9EC;
+    color: #251D18;
+    border-color: #D8C6A1;
+}
+[data-testid="stSidebar"] input:not([type="radio"]) { color: #251D18; }
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p { color: #F8EEDC; }
+[data-testid="stSidebar"] [data-testid="stSlider"] [role="slider"] {
+    background: #B3261E;
+    border-color: #F4E8C8;
+}
+/* Identidad y cabecera. */
+.brand { display:flex; align-items:center; gap:13px; padding: 13px 0 20px; }
+.brand-icon {
+    display:flex; align-items:center; justify-content:center;
+    width:51px; height:51px;
+    background:#6E2822; border:1px solid #D9A75F;
+    border-radius:14px; font-size:28px;
+}
+.brand-name { font-weight:850; letter-spacing:.07em; color:#FFF8E8; font-size:17px; }
+.brand-subtitle { font-size:10px; letter-spacing:.16em; color:#D9B67B; }
+.eyebrow { letter-spacing:.16em; text-transform:uppercase; font-size:11px;
+    color:#9F2B23; font-weight:850; margin-bottom:9px; }
+.hero {
+    position:relative; overflow:hidden; isolation:isolate;
+    background-color:#F2E2BF;
+    background-image: linear-gradient(90deg, rgba(249,240,220,.98) 0%,
+        rgba(249,240,220,.96) 44%, rgba(249,240,220,.38) 76%,
+        rgba(249,240,220,.10) 100%), url("__ARTE_JAPONES__");
+    background-position:center, right center;
+    background-size:cover, cover;
+    border:1px solid #DDC69E;
+    border-radius:20px;
+    padding:34px 36px; margin-bottom:25px; min-height:207px;
+    box-shadow:0 10px 28px rgba(77,50,27,.10);
+}
+.hero h1 { color:#201A16; font-size:clamp(28px, 3vw, 42px);
+    max-width:880px; margin:0 0 10px; line-height:1.16; font-weight:850; }
+.hero p { color:#493A2F; max-width:810px; font-size:15px;
+    margin:0; line-height:1.55; font-weight:500; }
+.hero-badge { display:inline-block; margin-top:17px;
+    border:1px solid #BFA579; background:rgba(255,250,238,.83);
+    color:#713C2C; padding:7px 13px; border-radius:25px;
+    font-size:11px; font-weight:700; }
+.section-heading { margin-top:16px; margin-bottom:13px;
+    font-size:21px; font-weight:800; color:#2D251E; letter-spacing:-.025em; }
+.helper { color:#705F4E; font-size:13px; line-height:1.65; margin:5px 0 18px; }
+.notice { color:#51382C; padding:13px 16px; background:#F3E0BC;
+    border-left:4px solid #B3261E; border-radius:9px; margin:10px 0 20px;
+    font-size:13px; line-height:1.5; }
+.footer-note { font-size:12px; color:#7C6A55; margin-top:22px; }
+.mini-label { letter-spacing:.08em; text-transform:uppercase;
+    font-size:11px; color:#A22E26; font-weight:800; }
+/* KPI / métricas. */
+[data-testid="stMetric"] {
+    background:#FFF9EC; border:1px solid #DFCA9F;
+    border-radius:15px; padding:20px; min-height:125px;
+    box-shadow:0 5px 16px rgba(84,55,27,.07);
+}
+[data-testid="stMetricLabel"] { color:#78644F; font-size:14px; }
+[data-testid="stMetricValue"] { color:#AE2E24; font-size:clamp(22px, 2.45vw, 31px); font-weight:750; }
+[data-testid="stMetricDelta"] { font-size:12px; }
+/* Tablas, gráficos, controles. */
+[data-testid="stVerticalBlockBorderWrapper"] > div { border-radius:14px; }
+[data-testid="stDataFrame"] {
+    background:#FFF9EC; border:1px solid #DFCDAE; border-radius:12px;
+}
+[data-testid="stVegaLiteChart"] {
+    background:#FFF9EC; padding:12px; border:1px solid #E4D3B4;
+    border-radius:12px;
+}
+.stButton > button[kind="primary"], .stDownloadButton > button {
+    background:#B3261E; color:#FFF9EC; border:1px solid #B3261E;
+    border-radius:10px; padding:9px 15px; font-weight:700;
+}
+.stButton > button[kind="primary"]:hover, .stDownloadButton > button:hover {
+    background:#871E1B; border-color:#871E1B; color:#FFFFFF;
+}
+.stButton > button[kind="secondary"] { border-color:#D2BA94; color:#473429; }
+.stButton > button[kind="secondary"]:hover { border-color:#B3261E; color:#B3261E; }
+[data-testid="stAppViewContainer"] input,
+[data-testid="stAppViewContainer"] [data-baseweb="select"] > div {
+    border-radius:9px;
+}
+.stAlert { border-radius:12px; }
+@media (max-width:800px) {
+    .hero { padding:24px 21px; min-height:180px;
+        background-image:linear-gradient(90deg, rgba(249,240,220,.98) 0%,
+            rgba(249,240,220,.91) 100%), url("__ARTE_JAPONES__"); }
+    .hero h1 { font-size:29px; }
+    .block-container { padding-top:1.1rem; }
+}
+</style>
+"""
 st.markdown(
-    """
-               
-    
-    <style>
-        /* Estructura general */
-        .stApp { background: #F7F4EC; color: #1C3329; }
-        [data-testid="stHeader"] { background: rgba(247,244,236,.92); }
-        [data-testid="stAppViewContainer"] > .main { background: transparent; }
-        .block-container { max-width: 1450px; padding-top: 1.8rem; padding-bottom: 3rem; }
-        h1, h2, h3 { color: #1D3C2D; letter-spacing: -0.025em; }
-        h3 { font-weight: 750; }
-        hr { border-color: #E6E5DB; }
-
-        /* Barra lateral. El tema TOML ajusta los controles y sus contrastes. */
-        [data-testid="stSidebar"] { background: #173B2C; }
-        [data-testid="stSidebar"] h1,
-        [data-testid="stSidebar"] h2,
-        [data-testid="stSidebar"] h3 { color: #F7F4EC; }
-        [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color: #F3F4EC; }
-        [data-testid="stSidebar"] .stCaption { color: #CDD9CD; }
-        [data-testid="stSidebar"] [role="radiogroup"] label {
-            border-radius: 11px; padding: 7px 10px;
-            transition: background 120ms ease;
-        }
-        [data-testid="stSidebar"] [role="radiogroup"] label:hover {
-            background: rgba(255,255,255,.11);
-        }
-
-        /* Cabecera y secciones */
-        .brand { display:flex; align-items:center; gap:13px; padding: 13px 0 20px; }
-        .brand-icon { display:flex; align-items:center; justify-content:center;
-            width:49px; height:49px; background:#2D654C; border-radius:15px; font-size:26px; }
-        .brand-name { font-weight:850; letter-spacing:.07em; color:#FAF8EF; font-size:17px; }
-        .brand-subtitle { font-size:10px; letter-spacing:.16em; color:#D4C89B; }
-        .eyebrow { letter-spacing:.17em; text-transform:uppercase; font-size:11px;
-            color:#D5B26D; font-weight:800; margin-bottom:7px; }
-        .hero { background: linear-gradient(118deg,#173B2C 0%,#285A42 68%,#467653 100%);
-            border-radius:22px; padding:30px 35px; margin-bottom:25px; color:#F8F6EC;
-            box-shadow:0 13px 35px rgba(26,61,45,.12); }
-        .hero h1 { color:#FFFFFF; font-size:clamp(27px,3vw,41px); margin:0 0 9px;
-            line-height:1.13; font-weight:800; }
-        .hero p { color:#E3EEE2; font-size:14px; margin:0; line-height:1.6; }
-        .hero-badge { display:inline-block; margin-top:14px; border:1px solid rgba(255,255,255,.3);
-            color:#FAF5E5; padding:6px 11px; border-radius:30px; font-size:11px; }
-        .section-heading { margin-top:12px; margin-bottom:13px; font-size:20px; font-weight:800;
-            color:#213F2F; letter-spacing:-.025em; }
-        .helper { color:#65786B; font-size:13px; line-height:1.65; margin:5px 0 18px; }
-        .notice { color:#52675A; padding:12px 16px; background:#EDEFE3;
-            border-left:4px solid #C69B51; border-radius:9px; margin:10px 0 20px;
-            font-size:13px; line-height:1.5; }
-        .footer-note { font-size:12px; color:#78867A; margin-top:20px; }
-        .mini-label { letter-spacing:.08em; text-transform:uppercase; font-size:11px;
-            color:#C69B51; font-weight:800; }
-
-        /* KPI cards */
-        [data-testid="stMetric"] { background:#FFFFFF; border:1px solid #E8E9E0;
-            border-radius:17px; padding:18px 20px; min-height:122px;
-            box-shadow:0 5px 15px rgba(25,62,43,.045); }
-        [data-testid="stMetricLabel"] { color:#617366; font-size:13px; }
-        [data-testid="stMetricValue"] { color:#1D5038; font-size:clamp(21px,2.4vw,29px); }
-        [data-testid="stMetricDelta"] { font-size:12px; }
-
-        /* Contenedores, tablas y botones */
-        [data-testid="stVerticalBlockBorderWrapper"] > div { border-radius:15px; }
-        [data-testid="stDataFrame"] { border:1px solid #E4E8DF; border-radius:12px; }
-        .stButton > button[kind="primary"], .stDownloadButton > button {
-            background:#255B43; color:white; border:1px solid #255B43;
-            border-radius:10px; padding:9px 15px; font-weight:650; }
-        .stButton > button[kind="primary"]:hover, .stDownloadButton > button:hover {
-            background:#347657; color:white; border-color:#347657; }
-        .stAlert { border-radius:12px; }
-        @media (max-width: 800px) {
-            .hero { padding:22px 20px; }
-            .block-container { padding-top:1.1rem; }
-        }
-    </style>
-    """,
+    CSS_JAPONES.replace("__ARTE_JAPONES__", ARTE_JAPONES_URL),
     unsafe_allow_html=True,
 )
 
@@ -190,6 +344,24 @@ def aviso(mensaje):
     st.markdown(f'<div class="notice">{mensaje}</div>', unsafe_allow_html=True)
 
 
+def estilo_grafico(grafico):
+    """Estilo japonés para todos los gráficos Altair, manteniendo sus datos."""
+    return (
+        grafico.properties(background=MARFIL)
+        .configure_view(stroke=None)
+        .configure_axis(
+            labelColor=TINTA,
+            titleColor=TINTA,
+            gridColor="#E8DBC2",
+            tickColor="#D8C6A1",
+            domainColor="#D8C6A1",
+            labelFontSize=12,
+            titleFontSize=13,
+        )
+        .configure_legend(labelColor=TINTA, titleColor=TINTA, labelFontSize=12)
+    )
+
+
 def linea(data, x, y, *, nombres=None, titulo_y=None, alto=310, puntos=False):
     """Gráfico Altair interactivo: muestra valores al pasar el cursor."""
     nombres = nombres or {col: col for col in y}
@@ -198,7 +370,7 @@ def linea(data, x, y, *, nombres=None, titulo_y=None, alto=310, puntos=False):
     series = [nombres.get(col, col) for col in y]
     largo = columnas.melt(id_vars=[x], value_vars=series,
                           var_name="Serie", value_name="Valor")
-    paleta = [VERDE, DORADO, "#8A9F8A", "#B87354"][:len(series)]
+    paleta = [ROJO, DORADO, "#705548", "#D9AC70"][:len(series)]
     base = alt.Chart(largo).encode(
         x=alt.X(f"{x}:T", title=None, axis=alt.Axis(labelAngle=0, format="%d %b %Y")),
         y=alt.Y("Valor:Q", title=titulo_y, scale=alt.Scale(zero=False)),
@@ -209,10 +381,10 @@ def linea(data, x, y, *, nombres=None, titulo_y=None, alto=310, puntos=False):
                  alt.Tooltip("Valor:Q", title="Valor", format=",.2f")],
     )
     grafico = base.mark_line(point=puntos, strokeWidth=2.8).properties(height=alto)
-    st.altair_chart(grafico.interactive(), use_container_width=True)
+    st.altair_chart(estilo_grafico(grafico.interactive()), use_container_width=True)
 
 
-def barras(data, x, y, *, color=VERDE, alto=265, eje_titulo=None, orden=None):
+def barras(data, x, y, *, color=ROJO, alto=265, eje_titulo=None, orden=None):
     grafico = alt.Chart(data).mark_bar(
         color=color, cornerRadiusTopLeft=5, cornerRadiusTopRight=5,
     ).encode(
@@ -222,7 +394,7 @@ def barras(data, x, y, *, color=VERDE, alto=265, eje_titulo=None, orden=None):
         tooltip=[alt.Tooltip(f"{x}:O", title=x),
                  alt.Tooltip(f"{y}:Q", title=y, format=",.2f")],
     ).properties(height=alto)
-    st.altair_chart(grafico, use_container_width=True)
+    st.altair_chart(estilo_grafico(grafico), use_container_width=True)
 
 
 def tabla_csv(data, archivo, etiqueta="Descargar datos (CSV)"):
@@ -445,6 +617,7 @@ if pagina == PAGINAS[0]:
                   titulo_y="Pedidos / día", puntos=True)
     with b:
         seccion("Ingresos y costes", "Distribución del importe acumulado previsto.")
+    
         composicion = pd.DataFrame({
             "Concepto": ["Costes variables", "Personal", "Costes fijos", "Beneficio"],
             "Importe": [
@@ -454,18 +627,77 @@ if pagina == PAGINAS[0]:
                 total_beneficio,
             ],
         })
+    
         if total_beneficio >= 0 and total_ventas > 0:
-            arco = alt.Chart(composicion).mark_arc(innerRadius=76, outerRadius=119).encode(
-                theta="Importe:Q",
-                color=alt.Color("Concepto:N", scale=alt.Scale(
-                    domain=composicion["Concepto"].tolist(),
-                    range=["#E4C99B", "#8DA48D", "#C8D7C0", VERDE]
-                ), legend=alt.Legend(orient="bottom", title=None)),
-                tooltip=["Concepto:N", alt.Tooltip("Importe:Q", format=",.2f")],
-            ).properties(height=295)
-            st.altair_chart(arco, use_container_width=True)
+            # Colores similares a los de la captura actual.
+            colores = {
+                "Costes variables": "#CDB377",  # dorado
+                "Personal": "#735949",          # marrón
+                "Costes fijos": "#E6D8B8",      # crema
+                "Beneficio": "#A9342A",         # rojo
+            }
+    
+            composicion["Porcentaje"] = (
+                100 * composicion["Importe"] / composicion["Importe"].sum()
+            )
+    
+            grafico = (
+                alt.Chart(composicion)
+                .mark_arc(
+                    innerRadius=88,
+                    outerRadius=128,
+                    stroke="#FBF8EF",
+                    strokeWidth=3,
+                )
+                .encode(
+                    theta=alt.Theta("Importe:Q"),
+                    color=alt.Color(
+                        "Concepto:N",
+                        scale=alt.Scale(
+                            domain=list(colores.keys()),
+                            range=list(colores.values()),
+                        ),
+                        legend=None,  # Leyenda HTML independiente: no se recorta.
+                    ),
+                    tooltip=[
+                        alt.Tooltip("Concepto:N", title="Concepto"),
+                        alt.Tooltip("Importe:Q", title="Importe (€)", format=",.2f"),
+                        alt.Tooltip("Porcentaje:Q", title="Porcentaje (%)", format=".1f"),
+                    ],
+                )
+                .properties(height=300, background="#FBF8EF")
+                .configure_view(stroke=None)
+            )
+    
+            st.altair_chart(grafico, use_container_width=True)
+    
+            # Leyenda en una cuadrícula 2 x 2 para columnas estrechas.
+            items = []
+            for _, fila in composicion.iterrows():
+                concepto = fila["Concepto"]
+                porcentaje = fila["Porcentaje"]
+                color = colores[concepto]
+                items.append(
+                    f'<div style="display:flex; align-items:center; gap:8px; min-width:0;">'
+                    f'<span style="display:inline-block; flex-shrink:0; '
+                    f'width:11px; height:11px; border-radius:50%; background:{color};"></span>'
+                    f'<span style="font-size:13px; color:#554A42; line-height:1.4;">'
+                    f'{concepto} <strong>{porcentaje:.1f}%</strong></span>'
+                    f'</div>'
+                )
+    
+            st.markdown(
+                '<div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); '
+                'gap:14px 10px; padding:8px 8px 12px;">'
+                + ''.join(items) +
+                '</div>',
+                unsafe_allow_html=True,
+            )
         else:
-            st.info("El beneficio es negativo o los ingresos son cero; consulta el desglose en Rentabilidad.")
+            st.info(
+                "El beneficio es negativo o los ingresos son cero; "
+                "consulta el desglose en Rentabilidad."
+            )
             st.dataframe(composicion, hide_index=True, use_container_width=True)
 
     seccion("Indicadores de referencia")
@@ -703,12 +935,12 @@ elif pagina == PAGINAS[5]:
             st.dataframe(comp.round(3), hide_index=True, use_container_width=True)
         with col2:
             ordenado = comp.sort_values(metrica, ascending=(metrica != "R2"))
-            diagrama = alt.Chart(ordenado).mark_bar(color=VERDE, cornerRadiusEnd=4).encode(
+            diagrama = alt.Chart(ordenado).mark_bar(color=ROJO, cornerRadiusEnd=4).encode(
                 y=alt.Y("Modelo:N", sort=ordenado["Modelo"].tolist(), title=None),
                 x=alt.X(f"{metrica}:Q", title=metrica),
                 tooltip=["Modelo:N", alt.Tooltip(f"{metrica}:Q", format=",.3f")],
             ).properties(height=330)
-            st.altair_chart(diagrama, use_container_width=True)
+            st.altair_chart(estilo_grafico(diagrama), use_container_width=True)
 
     st.divider()
     seccion("Reales frente a predichos", "Muestra de los primeros 60 días del conjunto de prueba.")
